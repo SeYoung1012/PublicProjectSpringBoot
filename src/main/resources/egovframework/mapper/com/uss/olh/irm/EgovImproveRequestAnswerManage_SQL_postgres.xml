@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="IrmManage">
+	
+	<resultMap id="IrmManage" type="egovframework.com.uss.olh.irm.service.IrmVO">
+		<result property="srvcId" column="SRVC_CHG_DMND_ID"/>
+		<result property="srvcTtl" column="SRVC_CHG_DMND_TTL_NM"/>		
+		<result property="srvcCn" column="SRVC_CHG_DMND_CN"/>
+		<result property="wrtNm" column="WRT_NM"/>
+		<result property="wrtYmd" column="WRT_YMD"/>
+		<result property="wrtPswd" column="WRT_PSWD"/>
+		<result property="ansCn" column="ANS_CN"/>
+		<result property="answrNm" column="ANSWR_NM"/>
+		<result property="ansYmd" column="ANS_YMD"/>						
+		<result property="dmndPrcsSttsCd" column="DMND_PRCS_STTS_CD"/>
+		<result property="useYn" column="USE_YN"/>
+		<result property="atchFileId" column="ATCH_FILE_ID"/>
+		<result property="frstRgtrId" column="FRST_RGTR_ID"/>
+		<result property="frstRegDt" column="FRST_REG_DT"/>						
+		<result property="lastChnrgId" column="LAST_CHNRG_ID"/>
+		<result property="lastChgDt" column="LAST_CHG_DT"/>	
+	</resultMap>
+	
+	
+	<select id="selectIrmDetail" resultMap="IrmManage">
+			SELECT 	C.SRVC_CHG_DMND_ID, C.SRVC_CHG_DMND_TTL_NM, C.SRVC_CHG_DMND_CN, C.WRT_NM, C.WRT_YMD, C.WRT_PSWD, C.ANS_CN,  
+					C.ANSWR_NM, C.ANS_YMD, C.DMND_PRCS_STTS_CD, C.USE_YN, C.ATCH_FILE_ID, C.FRST_RGTR_ID,C.LAST_CHNRG_ID,
+					D.CODE_NM DMND_PRCS_STTS_CD, 
+					A.USER_NM, A.OFFM_TELNO, A.EMAIL_ADRES AEMAIL_ADRES, B.ORGNZT_NM,	
+					TO_CHAR(C.FRST_REG_DT,'YYYYmmdd')FRST_REG_DT, C.FRST_RGTR_ID, 
+					TO_CHAR(C.LAST_CHG_DT,'YYYYmmdd')LAST_CHG_DT, C.LAST_CHNRG_ID			 			  			 			  		
+			FROM 	OCM_SRVC_CHG_DMND_INFO_B C
+			LEFT 	OUTER JOIN COMTCCMMNDETAILCODE D ON		D.CODE_ID ='COM103' 		AND C.DMND_PRCS_STTS_CD = D.CODE			
+			LEFT 	OUTER JOIN COMTNEMPLYRINFO A     ON		A.ESNTL_ID= C.LAST_CHNRG_ID 
+			LEFT 	OUTER JOIN COMTNORGNZTINFO B     ON		A.ORGNZT_ID = B.ORGNZT_ID                 												
+			WHERE	SRVC_CHG_DMND_ID=#{srvcId}			
+	</select>
+	
+	<select id="selectIrmList" parameterType="egovframework.com.uss.olh.irm.service.IrmVO" resultMap="IrmManage">
+				SELECT
+				SRVC_CHG_DMND_ID,
+				SRVC_CHG_DMND_TTL_NM,
+				SRVC_CHG_DMND_CN,
+				WRT_NM,
+				WRT_YMD,
+				WRT_PSWD,
+				ANS_CN,
+				ANSWR_NM,
+				ANS_YMD,
+				DMND_PRCS_STTS_CD,
+				USE_YN,
+				ATCH_FILE_ID,
+				FRST_RGTR_ID,
+				B.CODE_NM DMND_PRCS_STTS_CD,
+				TO_CHAR(A.FRST_REG_DT,'YYYYmmdd') AS FRST_REG_DT,
+				A.FRST_RGTR_ID,
+				A.LAST_CHG_DT,
+				A.LAST_CHNRG_ID			 			 
+			FROM OCM_SRVC_CHG_DMND_INFO_B A
+			LEFT OUTER JOIN COMTCCMMNDETAILCODE B
+			ON		B.CODE_ID ='COM103' AND A.DMND_PRCS_STTS_CD = B.CODE                               						                               			
+			WHERE	1=1   			
+							
+			<if test="searchCnd == 1">AND
+				SRVC_CHG_DMND_TTL_NM LIKE CONCAT('%', #{searchWrd}, '%')
+			</if>
+			<if test="searchCnd == 2">AND
+				SRVC_CHG_DMND_CN LIKE CONCAT('%', #{searchWrd}, '%')
+			</if>
+			ORDER BY SRVC_CHG_DMND_ID DESC			
+			LIMIT  #{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+	
+	<select id="selectIrmListCnt" parameterType="egovframework.com.uss.olh.irm.service.IrmVO" resultType="int">
+			SELECT 	COUNT(*) totcnt
+			FROM 	OCM_SRVC_CHG_DMND_INFO_B
+			WHERE 	1=1 				
+			<if test="searchCnd == 1">AND
+				SRVC_CHG_DMND_TTL_NM LIKE CONCAT('%', #{searchWrd}, '%')
+			</if>
+			<if test="searchCnd == 2">AND
+				SRVC_CHG_DMND_CN LIKE CONCAT('%', #{searchWrd}, '%')
+			</if> 	
+	</select>
+	
+	<insert id="insertIrm">
+	
+			INSERT INTO OCM_SRVC_CHG_DMND_INFO_B
+				   (SRVC_CHG_DMND_ID
+				  , SRVC_CHG_DMND_TTL_NM
+				  , SRVC_CHG_DMND_CN
+				  , WRT_NM
+				  , WRT_YMD
+				  , WRT_PSWD
+				  , ANS_CN  
+				  ,	ANSWR_NM
+				  , ANS_YMD
+				  , DMND_PRCS_STTS_CD
+				  , USE_YN
+				  , ATCH_FILE_ID
+				  , FRST_RGTR_ID  					     
+				  , FRST_REG_DT)
+			VALUES (#{srvcId}
+				  , #{srvcTtl}			
+				  , #{srvcCn}
+				  , #{wrtNm}
+				  , #{wrtYmd}			
+				  , #{wrtPswd}
+				  , #{ansCn}
+				  , #{answrNm}			
+				  , #{ansYmd}
+				  , #{dmndPrcsSttsCd}
+				  , #{useYn}
+				  ,#{atchFileId}
+				  ,#{frstRgtrId}
+				  , NOW())			
+	</insert>
+	
+	
+	<update id="updateIrm">
+	
+			UPDATE	OCM_SRVC_CHG_DMND_INFO_B SET 
+				  	SRVC_CHG_DMND_TTL_NM=#{srvcTtl}
+				  , SRVC_CHG_DMND_CN=#{srvcCn}
+				  , WRT_PSWD =#{wrtPswd}
+				  , WRT_NM =#{wrtNm}
+				  , WRT_YMD =TO_CHAR(NOW(),'YYYYmmdd')
+				  , LAST_CHG_DT=NOW()
+				  , LAST_CHNRG_ID=#{lastChnrgId}
+			WHERE  SRVC_CHG_DMND_ID=#{srvcId}	
+			
+	</update>
+	
+	<delete id="deleteIrm">
+	
+		DELETE FROM OCM_SRVC_CHG_DMND_INFO_B 
+		WHERE  SRVC_CHG_DMND_ID=#{srvcId}
+	
+	</delete>
+	
+	
+	<select id="selectIrmAnswerDetail"  resultMap="IrmManage">
+	
+			SELECT 	C.SRVC_CHG_DMND_ID, C.SRVC_CHG_DMND_TTL_NM, C.SRVC_CHG_DMND_CN, C.WRT_NM, C.WRT_YMD, C.WRT_PSWD, C.ANS_CN,  
+					C.ANSWR_NM, C.ANS_YMD, C.DMND_PRCS_STTS_CD, C.USE_YN, C.ATCH_FILE_ID, C.FRST_RGTR_ID,C.LAST_CHNRG_ID,
+					D.CODE_NM DMND_PRCS_STTS_CD, 
+					A.USER_NM, A.OFFM_TELNO, A.EMAIL_ADRES AEMAIL_ADRES, B.ORGNZT_NM,	
+					TO_CHAR(C.FRST_REG_DT,'YYYYmmdd')FRST_REG_DT, C.FRST_RGTR_ID, 
+					TO_CHAR(C.LAST_CHG_DT,'YYYYmmdd')LAST_CHG_DT, C.LAST_CHNRG_ID			 			  			 			  		
+			FROM 	OCM_SRVC_CHG_DMND_INFO_B C
+			LEFT 	OUTER JOIN COMTCCMMNDETAILCODE D ON		D.CODE_ID ='COM103' 		AND C.DMND_PRCS_STTS_CD = D.CODE			
+			LEFT 	OUTER JOIN COMTNEMPLYRINFO A     ON		A.ESNTL_ID= C.LAST_CHNRG_ID 
+			LEFT 	OUTER JOIN COMTNORGNZTINFO B     ON		A.ORGNZT_ID = B.ORGNZT_ID                 												
+			WHERE	SRVC_CHG_DMND_ID=#{srvcId}			
+			
+	</select>
+	
+	<select id="selectIrmAnswerList"  parameterType="egovframework.com.uss.olh.irm.service.IrmVO" resultMap="IrmManage">
+			
+				SELECT
+				SRVC_CHG_DMND_ID,
+				SRVC_CHG_DMND_TTL_NM,
+				SRVC_CHG_DMND_CN,
+				WRT_NM,
+				WRT_YMD,
+				WRT_PSWD,
+				ANS_CN,
+				ANSWR_NM,
+				ANS_YMD,
+				DMND_PRCS_STTS_CD,
+				USE_YN,
+				ATCH_FILE_ID,
+				FRST_RGTR_ID,
+				B.CODE_NM DMND_PRCS_STTS_CD,
+				TO_CHAR(A.FRST_REG_DT,'YYYYmmdd') AS FRST_REG_DT,
+				A.FRST_RGTR_ID,
+				A.LAST_CHG_DT,
+				A.LAST_CHNRG_ID			 			 
+			FROM OCM_SRVC_CHG_DMND_INFO_B A
+			LEFT OUTER JOIN COMTCCMMNDETAILCODE B
+			ON		B.CODE_ID ='COM103' AND A.DMND_PRCS_STTS_CD = B.CODE                               						                               			
+			WHERE	1=1   			
+							
+			<if test="searchCnd == 1">AND
+				SRVC_CHG_DMND_TTL_NM LIKE CONCAT('%', #{searchWrd}, '%')
+			</if>
+			<if test="searchCnd == 2">AND
+				SRVC_CHG_DMND_CN LIKE CONCAT('%', #{searchWrd}, '%')
+			</if>
+			ORDER BY SRVC_CHG_DMND_ID DESC			
+			LIMIT  #{recordCountPerPage} OFFSET #{firstIndex}
+	</select>
+	
+	<select id="selectIrmAnswerListCnt">
+	
+			SELECT 	COUNT(*) totcnt
+			FROM 	OCM_SRVC_CHG_DMND_INFO_B A
+			LEFT OUTER JOIN COMTCCMMNDETAILCODE B
+			ON		B.CODE_ID ='COM103' AND A.DMND_PRCS_STTS_CD = B.CODE            
+			WHERE 	1=1					
+			<if test="searchCnd == 1">AND
+				SRVC_CHG_DMND_TTL_NM LIKE CONCAT('%', #{searchWrd}, '%')
+			</if>
+			<if test="searchCnd == 2">AND
+				SRVC_CHG_DMND_CN LIKE CONCAT('%', #{searchWrd}, '%')
+			</if>	
+
+	</select>
+	
+	<update id="updateIrmAnswer">
+		
+			UPDATE	OCM_SRVC_CHG_DMND_INFO_B SET 
+				  	DMND_PRCS_STTS_CD=#{dmndPrcsSttsCd}
+				  , ANS_CN=#{ansCn}
+				  , ANS_YMD=TO_CHAR(NOW(),'YYYYmmdd')
+				  , LAST_UPDT_PNTTM=NOW()
+				  , LAST_UPDUSR_ID=#{lastUpdusrId}
+			WHERE  SRVC_CHG_DMND_ID=#{srvcId}	
+	
+	</update>
+	
+	<delete id="deleteIrmAnswer">
+		
+		DELETE FROM OCM_SRVC_CHG_DMND_INFO_B 
+		WHERE  SRVC_CHG_DMND_ID=#{srvcId}
+	
+	</delete>
+	
+
+</mapper>

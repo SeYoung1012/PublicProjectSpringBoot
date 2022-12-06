@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-EgovBootApplication<simpleHomePage>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "egovframework.EgovBootApplication",
+            "projectName": "simpleHomePage",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

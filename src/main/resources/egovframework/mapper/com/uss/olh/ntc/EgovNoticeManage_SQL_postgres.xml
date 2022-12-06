@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 
+	수정일        수정자                          수정내용
+    =========     =======    =================================================
+    2022.10.26   	  윤명석     	 	          최초생성					 							
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="NoticeManage">
+
+    <resultMap id="NoticeManage" type="egovframework.com.uss.olh.ntc.service.NoticeVO">
+        <result property="ntcId" column="NOTICE_ID"/>
+        <result property="ntcSj" column="NOTICE_SJ"/>
+        <result property="ntcCn" column="NOTICE_CN"/>
+        <result property="inqireCo" column="RDCNT"/>
+        <result property="atchFileId" column="ATCH_FILE_ID"/>
+        <result property="frstRegisterPnttm" column="FRST_REGIST_PNTTM"/>
+        <result property="frstRegisterId" column="FRST_REGISTER_ID"/>
+        <result property="lastUpdusrPnttm" column="LAST_UPDT_PNTTM"/>
+        <result property="lastUpdusrId" column="LAST_UPDUSR_ID"/>
+        <result property="topAt" column="TOP_AT" />
+        <result property="ntcNm" column="OFCPS_NM" />
+    </resultMap>
+
+    <select id="selectNoticeList" parameterType="egovframework.com.uss.olh.ntc.service.NoticeVO" resultMap="NoticeManage">
+        (SELECT
+            NOTICE_ID,
+            NOTICE_SJ,
+            NOTICE_CN,
+            RDCNT,
+            ATCH_FILE_ID,
+            TO_CHAR(FRST_REGIST_PNTTM,'YYYY/mm/dd') FRST_REGIST_PNTTM,
+            FRST_REGISTER_ID,
+            last_updusr_id,
+            B.ofcps_nm ,
+            TOP_AT
+        FROM COMTNNOTICE A
+        full outer join COMTNEMPLYRINFO B ON A.last_updusr_id=B.esntl_id 				
+        where TOP_AT='Y'	
+        order by NOTICE_ID  desc)
+        UNION
+        (SELECT
+            NOTICE_ID,
+            NOTICE_SJ,
+            NOTICE_CN,
+            RDCNT,
+            ATCH_FILE_ID,
+            TO_CHAR(FRST_REGIST_PNTTM,'YYYY/mm/dd') FRST_REGIST_PNTTM,
+            FRST_REGISTER_ID,
+            last_updusr_id,
+            B.ofcps_nm ,
+            TOP_AT
+		FROM COMTNNOTICE A
+        full outer join COMTNEMPLYRINFO B ON A.last_updusr_id=B.esntl_id	
+        WHERE 1=1
+        <if test="searchCnd == 0">AND
+            NOTICE_SJ LIKE CONCAT('%', #{searchWrd}, '%')
+        </if>
+        <if test="searchCnd == 1">AND
+            ofcps_nm LIKE CONCAT('%', #{searchWrd}, '%')
+        </if>		 
+        )
+        ORDER BY top_at desc ,NOTICE_ID desc
+        LIMIT  #{recordCountPerPage} OFFSET #{firstIndex}
+
+    </select>
+
+    <select id="selectNoticeListCnt" parameterType="egovframework.com.uss.olh.ntc.service.NoticeVO" resultType="int">
+		
+			SELECT 	COUNT(*) totcnt
+			FROM 	COMTNNOTICE A
+            full outer join COMTNEMPLYRINFO B ON A.last_updusr_id=B.esntl_id	
+			WHERE 1=1
+        <if test="searchCnd == 0">AND
+			NOTICE_SJ LIKE CONCAT('%', #{searchWrd}, '%')
+        </if>
+        <if test="searchCnd == 1">AND
+            ofcps_nm LIKE CONCAT('%', #{searchWrd}, '%')
+        </if>
+    </select>
+
+    <insert id="insertNotice">	
+        INSERT INTO COMTNNOTICE
+                (NOTICE_ID
+                , NOTICE_SJ
+                , NOTICE_CN
+                , RDCNT
+                , ATCH_FILE_ID
+                , FRST_REGIST_PNTTM 
+                , FRST_REGISTER_ID 
+                , LAST_UPDT_PNTTM 
+                , LAST_UPDUSR_ID
+                , TOP_AT) 
+        VALUES ( #{ntcId}
+                , #{ntcSj}
+                , #{ntcCn}
+                , 0
+                , #{atchFileId}
+                , NOW()
+                , #{frstRegisterId}
+                , NOW()
+                , #{lastUpdusrId}
+                , #{topAt} )
+    </insert>
+
+    <update id="updateNoticeInqireCo">	
+        UPDATE	COMTNNOTICE	SET RDCNT= COALESCE(RDCNT,0) + 1				  			
+        WHERE NOTICE_ID=#{ntcId}
+    </update>
+
+    <select id="selectNoticeDetail" resultMap="NoticeManage">		
+        SELECT 	NOTICE_ID, 
+                NOTICE_SJ, 
+                NOTICE_CN, 
+                RDCNT, 
+                ATCH_FILE_ID,
+                TO_CHAR(FRST_REGIST_PNTTM,'YYYY-mm-dd') FRST_REGIST_PNTTM,
+                FRST_REGISTER_ID, 
+                TO_CHAR(LAST_UPDT_PNTTM,'YYYYmmdd') LAST_UPDT_PNTTM,
+                LAST_UPDUSR_ID 
+        FROM COMTNNOTICE WHERE NOTICE_ID=#{ntcId}					
+    </select>
+
+    <update id="updateNotice"> 
+        UPDATE COMTNNOTICE SET NOTICE_ID=#{ntcId} 
+            , NOTICE_SJ=#{ntcSj}
+            , NOTICE_CN=#{ntcCn}
+            , ATCH_FILE_ID=#{atchFileId}				  			
+            , LAST_UPDT_PNTTM=NOW()
+            , LAST_UPDUSR_ID=#{lastUpdusrId}
+        WHERE NOTICE_ID=#{ntcId}
+    </update>
+
+    <delete id="deleteNotice">
+        DELETE FROM COMTNNOTICE
+        WHERE NOTICE_ID=#{ntcId}
+    </delete>
+
+</mapper>

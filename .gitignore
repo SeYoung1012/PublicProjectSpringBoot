@@ -1,0 +1,8 @@
+# ignore all .class files
+*.class
+*.jar
+*.properties
+/target/**/*.*
+target/**
+target/**/*.*
+pom.properties
